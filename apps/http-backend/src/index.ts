@@ -1,19 +1,16 @@
 import express from "express";
 import { middleware } from "./middleware";
-import { z } from "zod"
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
+import { signupSchema, signinSchema, roomSchema } from "@repo/common/validation"
+import { JWT_SECRET } from "@repo/backend-common/config";
+
 
 const app = express();
 
 app.post('/signup',async function(req, res){
 
-    const requiredbody = z.object({
-        username: z.string().min(3).max(10),
-        password: z.string().min(8).max(20).regex(/[A-Z]/).regex(/[a-z]/).regex(/[0-9]/).regex(/[^A-Za-z0-9]/)
-    })
-
-    const safeParsedData = requiredbody.safeParse(req.body);
+    const safeParsedData = signupSchema.safeParse(req.body);
 
     if(!safeParsedData.success){
         res.json({
@@ -23,13 +20,14 @@ app.post('/signup',async function(req, res){
         return;
     }
 
-    const { username, password } = req.body;
+    const { name, email, password } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 12)
 
     try {
         await userModel.create({
-            username: username,
+            name: name,
+            email: email,
             password: hashedPassword
         })
         res.json({
@@ -44,12 +42,7 @@ app.post('/signup',async function(req, res){
 
 app.post('/signin', async function (req, res){
 
-    const requiredbody = z.object({
-        username: z.string(),
-        password: z.string()
-    })
-
-    const safeParsedData = requiredbody.safeParse(req.body);
+    const safeParsedData = signinSchema.safeParse(req.body);
 
     if (!safeParsedData.success){
         res.json({
@@ -59,10 +52,10 @@ app.post('/signin', async function (req, res){
         return;
     }
 
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
     try {
-        const user = await userModel.findOne({ username });
+        const user = await userModel.findOne({ email });
 
         if (!user) {
             res.status(401).json({ message: "User not found or wrong email" });
@@ -78,7 +71,7 @@ app.post('/signin', async function (req, res){
         }else{
             const token = jwt.sign({
                 id: user._id,
-            },process.env.JWT_SECRET!);
+            }, JWT_SECRET);
     
             res.json({
                 token:token,
