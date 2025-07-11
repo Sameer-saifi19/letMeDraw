@@ -1,5 +1,5 @@
 {
-  "name": "ws-backend",
+  "name": "http-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -16,10 +16,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/ws": "^8.18.1",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.0",
+    "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "ws": "^8.18.3"
+    "zod": "^4.0.5"
   }
 }
