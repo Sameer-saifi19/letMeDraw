@@ -1,6 +1,7 @@
 import express from "express";
 import { middleware } from "./middleware";
 import bcrypt from "bcrypt";
+import { prismaClient } from "@repo/db/prismaClient"
 import jwt from "jsonwebtoken"
 import { signupSchema, signinSchema, roomSchema } from "@repo/common/validation"
 import { JWT_SECRET } from "@repo/backend-common/config";
@@ -21,14 +22,16 @@ app.post('/signup',async function(req, res){
     }
 
     const { name, email, password } = req.body;
-
+    
     const hashedPassword = await bcrypt.hash(password, 12)
-
+    
     try {
-        await userModel.create({
-            name: name,
-            email: email,
-            password: hashedPassword
+        await prismaClient.user.create({
+            data: {
+                name: safeParsedData.data.name,
+                email: safeParsedData.data.email,
+                password: hashedPassword
+            }
         })
         res.json({
             message: "Sign up Successful"
@@ -55,7 +58,7 @@ app.post('/signin', async function (req, res){
     const { email, password } = req.body;
 
     try {
-        const user = await userModel.findOne({ email });
+        const user = await user.findOne({ email });
 
         if (!user) {
             res.status(401).json({ message: "User not found or wrong email" });
