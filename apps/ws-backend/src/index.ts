@@ -1,4 +1,4 @@
-import { WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import jwt from 'jsonwebtoken';
 import {JWT_SECRET} from "@repo/backend-common/config"
 import { prismaClient } from "@repo/db/prismaClient"
@@ -6,7 +6,7 @@ import { prismaClient } from "@repo/db/prismaClient"
 const wss = new WebSocketServer({port: 8080})
 
 interface User {
-    ws: import("ws").WebSocket,
+    ws: WebSocket,
     rooms: string[],
     userId: string
 }
@@ -63,9 +63,10 @@ wss.on('connection', function connection(ws, request){
 
         if(parsedData.type === "leave_room"){
             const user = users.find(x => x.ws === ws);
-            if (user) {
-                user.rooms = user.rooms.filter(x => x === parsedData.room);
+            if (!user) {
+                return
             }
+        user.rooms = user?.rooms.filter(x => x === parsedData.room);
         }
 
         if(parsedData.type === "chat"){
